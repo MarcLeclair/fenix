@@ -20,10 +20,11 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.transition.TransitionInflater
+import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.android.synthetic.main.fragment_search.*
 import kotlinx.android.synthetic.main.fragment_search.view.*
 import kotlinx.android.synthetic.main.search_suggestions_onboarding.view.*
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import mozilla.components.concept.storage.HistoryStorage
 import mozilla.components.feature.qr.QrFeature
 import mozilla.components.lib.state.ext.consumeFrom
@@ -66,6 +67,7 @@ class SearchFragment : Fragment(), UserInteractionHandler {
         requireComponents.analytics.metrics.track(Event.InteractWithSearchURLArea)
     }
 
+    @ExperimentalCoroutinesApi
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -131,9 +133,21 @@ class SearchFragment : Fragment(), UserInteractionHandler {
             (activity as HomeActivity).browsingModeManager.mode.isPrivate
         )
 
-        val urlView = toolbarView.view
-            .findViewById<InlineAutocompleteEditText>(R.id.mozac_browser_toolbar_edit_url_view)
-        urlView?.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        toolbarView.loadAsync() {
+            if (!permissionDidUpdate) {
+                toolbarView.view.requestFocus()
+            }
+
+            consumeFrom(searchStore) {
+                awesomeBarView.update(it)
+                toolbarView.update(it)
+                updateSearchWithLabel(it)
+                updateClipboardSuggestion(it, requireContext().components.clipboardHandler.url)
+                updateSearchSuggestionsHintVisibility(it)
+            }
+        }
+
+
 
         startPostponedEnterTransition()
         return view
@@ -142,6 +156,7 @@ class SearchFragment : Fragment(), UserInteractionHandler {
     @ExperimentalCoroutinesApi
     @SuppressWarnings("LongMethod")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        android.util.Log.e("onViewCreated", "START")
         super.onViewCreated(view, savedInstanceState)
 
         search_scan_button.visibility = if (context?.hasCamera() == true) View.VISIBLE else View.GONE
@@ -243,14 +258,8 @@ class SearchFragment : Fragment(), UserInteractionHandler {
                     from = BrowserDirection.FromSearch
                 )
         }
+        android.util.Log.e("onViewCreated", "starting consumeFROM")
 
-        consumeFrom(searchStore) {
-            awesomeBarView.update(it)
-            toolbarView.update(it)
-            updateSearchWithLabel(it)
-            updateClipboardSuggestion(it, requireContext().components.clipboardHandler.url)
-            updateSearchSuggestionsHintVisibility(it)
-        }
 
         startPostponedEnterTransition()
     }
@@ -270,9 +279,6 @@ class SearchFragment : Fragment(), UserInteractionHandler {
             )
         }
 
-        if (!permissionDidUpdate) {
-            toolbarView.view.requestFocus()
-        }
 
         updateClipboardSuggestion(
             searchStore.state,

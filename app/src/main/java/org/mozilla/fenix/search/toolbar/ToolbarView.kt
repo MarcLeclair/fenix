@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.asynclayoutinflater.view.AsyncLayoutInflater
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import com.google.android.material.appbar.AppBarLayout
@@ -24,6 +25,7 @@ import mozilla.components.browser.toolbar.BrowserToolbar
 import mozilla.components.concept.storage.HistoryStorage
 import mozilla.components.feature.toolbar.ToolbarAutocompleteFeature
 import mozilla.components.support.ktx.android.util.dpToPx
+import mozilla.components.ui.autocomplete.InlineAutocompleteEditText
 import org.mozilla.fenix.R
 import org.mozilla.fenix.ext.getColorFromAttr
 import org.mozilla.fenix.ext.settings
@@ -70,19 +72,35 @@ class ToolbarView(
     private val settings = container.context.settings()
 
     @LayoutRes
-    private val toolbarLayout = when {
+    internal val toolbarLayout = when {
         settings.shouldUseBottomToolbar -> R.layout.component_bottom_browser_toolbar
         else -> R.layout.component_browser_top_toolbar
     }
 
-    val view: BrowserToolbar = LayoutInflater.from(container.context)
-        .inflate(toolbarLayout, container, true)
-        .findViewById(R.id.toolbar)
+
+
+    lateinit var view: BrowserToolbar
 
     private var isInitialized = false
 
-    init {
+
+    fun loadAsync(action: View.() -> Unit ){
+        AsyncLayoutInflater(container.context).inflate(toolbarLayout, container) { finalView, _, parent ->
+            with(parent!!) {
+                addView(finalView)
+                setupView(finalView)
+                action()
+            }
+
+
+        }
+    }
+
+
+    fun setupView(finalView: View){
+        view = finalView.findViewById((R.id.toolbar))
         view.apply {
+            android.util.Log.e("listener call back", "START")
             editMode()
 
             setScrollFlagsForTopToolbar()
@@ -129,13 +147,18 @@ class ToolbarView(
                     this@ToolbarView.interactor.onTextChanged(text)
                 }
             })
+            android.util.Log.e("listener call back", "END")
         }
 
         ToolbarAutocompleteFeature(view).apply {
             addDomainProvider(ShippedDomainsProvider().also { it.initialize(view.context) })
             historyStorage?.also(::addHistoryStorageProvider)
         }
+
+        val urlView = view.findViewById<InlineAutocompleteEditText>(R.id.mozac_browser_toolbar_edit_url_view)
+        urlView?.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
     }
+
 
     fun update(searchState: SearchFragmentState) {
         if (!isInitialized) {
@@ -184,7 +207,7 @@ fun BrowserToolbar.setScrollFlagsForTopToolbar() {
         true -> 0
         false -> {
             SCROLL_FLAG_SCROLL or SCROLL_FLAG_ENTER_ALWAYS or SCROLL_FLAG_SNAP or
-                SCROLL_FLAG_EXIT_UNTIL_COLLAPSED
+                    SCROLL_FLAG_EXIT_UNTIL_COLLAPSED
         }
     }
 }
