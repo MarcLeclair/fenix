@@ -14,22 +14,26 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.asynclayoutinflater.view.AsyncLayoutInflater
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_EXIT_UNTIL_COLLAPSED
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP
 import kotlinx.android.extensions.LayoutContainer
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import mozilla.components.browser.domains.autocomplete.ShippedDomainsProvider
 import mozilla.components.browser.toolbar.BrowserToolbar
 import mozilla.components.concept.storage.HistoryStorage
 import mozilla.components.feature.toolbar.ToolbarAutocompleteFeature
+import mozilla.components.lib.state.ext.consumeFrom
 import mozilla.components.support.ktx.android.util.dpToPx
 import mozilla.components.ui.autocomplete.InlineAutocompleteEditText
 import org.mozilla.fenix.R
 import org.mozilla.fenix.ext.getColorFromAttr
 import org.mozilla.fenix.ext.settings
 import org.mozilla.fenix.search.SearchFragmentState
+import org.mozilla.fenix.search.SearchFragmentStore
 import org.mozilla.fenix.theme.ThemeManager
 
 /**
@@ -83,22 +87,24 @@ class ToolbarView(
 
     private var isInitialized = false
 
-
-    fun loadAsync(action: View.() -> Unit ){
+    @ExperimentalCoroutinesApi
+    fun loadAsync(searchStore: SearchFragmentStore, owner: LifecycleOwner, action: View.() -> Unit){
         AsyncLayoutInflater(container.context).inflate(toolbarLayout, container) { finalView, _, parent ->
             with(parent!!) {
+                view = finalView.findViewById((R.id.toolbar))
+                view.editMode()
+                consumeFrom(searchStore, owner){
+                    this@ToolbarView.update(it)
+                }
+                setupView()
                 addView(finalView)
-                setupView(finalView)
                 action()
             }
-
-
         }
     }
 
 
-    fun setupView(finalView: View){
-        view = finalView.findViewById((R.id.toolbar))
+    private fun setupView(){
         view.apply {
             android.util.Log.e("listener call back", "START")
             editMode()
@@ -162,6 +168,7 @@ class ToolbarView(
 
     fun update(searchState: SearchFragmentState) {
         if (!isInitialized) {
+            android.util.Log.e("not init","start")
             view.url = searchState.pastedText ?: searchState.query
 
             /* Only set the search terms if pasted text is null so that the search term doesn't
@@ -172,8 +179,10 @@ class ToolbarView(
 
             view.editMode()
             isInitialized = true
+            android.util.Log.e("not init","end")
         }
 
+        android.util.Log.e("now init","start")
         val iconSize = container.resources.getDimensionPixelSize(R.dimen.preference_icon_drawable_size)
 
         val scaledIcon = Bitmap.createScaledBitmap(
@@ -185,6 +194,7 @@ class ToolbarView(
         val icon = BitmapDrawable(container.resources, scaledIcon)
 
         view.edit.setIcon(icon, searchState.searchEngineSource.searchEngine.name)
+        android.util.Log.e("update","end")
     }
 
     companion object {

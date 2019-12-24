@@ -133,14 +133,13 @@ class SearchFragment : Fragment(), UserInteractionHandler {
             (activity as HomeActivity).browsingModeManager.mode.isPrivate
         )
 
-        toolbarView.loadAsync() {
+        toolbarView.loadAsync(searchStore, viewLifecycleOwner) {
             if (!permissionDidUpdate) {
                 toolbarView.view.requestFocus()
             }
 
             consumeFrom(searchStore) {
                 awesomeBarView.update(it)
-                toolbarView.update(it)
                 updateSearchWithLabel(it)
                 updateClipboardSuggestion(it, requireContext().components.clipboardHandler.url)
                 updateSearchSuggestionsHintVisibility(it)
@@ -266,7 +265,7 @@ class SearchFragment : Fragment(), UserInteractionHandler {
 
     override fun onResume() {
         super.onResume()
-
+        android.util.Log.e("Onresume", "start")
         // The user has the option to go to 'Shortcuts' -> 'Search engine settings' to modify the default search engine.
         // When returning from that settings screen we need to update it to account for any changes.
         val currentDefaultEngine =
@@ -287,11 +286,14 @@ class SearchFragment : Fragment(), UserInteractionHandler {
 
         permissionDidUpdate = false
         hideToolbar()
+        android.util.Log.e("Onresume", "end")
     }
 
     override fun onPause() {
         super.onPause()
+        android.util.Log.e("onpause", "start")
         toolbarView.view.clearFocus()
+        android.util.Log.e("Onresume", "end")
     }
 
     override fun onBackPressed(): Boolean {
