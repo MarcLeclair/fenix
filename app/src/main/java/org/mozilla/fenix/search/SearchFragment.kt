@@ -141,6 +141,7 @@ class SearchFragment : Fragment(), UserInteractionHandler {
             consumeFrom(searchStore) {
                 awesomeBarView.update(it)
                 updateSearchWithLabel(it)
+                toolbarView.update(it)
                 updateClipboardSuggestion(it, requireContext().components.clipboardHandler.url)
                 updateSearchSuggestionsHintVisibility(it)
             }
@@ -155,7 +156,6 @@ class SearchFragment : Fragment(), UserInteractionHandler {
     @ExperimentalCoroutinesApi
     @SuppressWarnings("LongMethod")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        android.util.Log.e("onViewCreated", "START")
         super.onViewCreated(view, savedInstanceState)
 
         search_scan_button.visibility = if (context?.hasCamera() == true) View.VISIBLE else View.GONE
@@ -257,15 +257,11 @@ class SearchFragment : Fragment(), UserInteractionHandler {
                     from = BrowserDirection.FromSearch
                 )
         }
-        android.util.Log.e("onViewCreated", "starting consumeFROM")
-
-
         startPostponedEnterTransition()
     }
 
     override fun onResume() {
         super.onResume()
-        android.util.Log.e("Onresume", "start")
         // The user has the option to go to 'Shortcuts' -> 'Search engine settings' to modify the default search engine.
         // When returning from that settings screen we need to update it to account for any changes.
         val currentDefaultEngine =
@@ -286,14 +282,11 @@ class SearchFragment : Fragment(), UserInteractionHandler {
 
         permissionDidUpdate = false
         hideToolbar()
-        android.util.Log.e("Onresume", "end")
     }
 
     override fun onPause() {
         super.onPause()
-        android.util.Log.e("onpause", "start")
         toolbarView.view.clearFocus()
-        android.util.Log.e("Onresume", "end")
     }
 
     override fun onBackPressed(): Boolean {

@@ -21,7 +21,10 @@ import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP
 import kotlinx.android.extensions.LayoutContainer
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import mozilla.components.browser.domains.autocomplete.ShippedDomainsProvider
 import mozilla.components.browser.toolbar.BrowserToolbar
 import mozilla.components.concept.storage.HistoryStorage
@@ -82,31 +85,46 @@ class ToolbarView(
     }
 
 
+    lateinit var icon: BitmapDrawable
+    lateinit var searchEngineName: String
+    lateinit var hint: String
 
     lateinit var view: BrowserToolbar
 
     private var isInitialized = false
 
     @ExperimentalCoroutinesApi
-    fun loadAsync(searchStore: SearchFragmentStore, owner: LifecycleOwner, action: View.() -> Unit){
+    fun loadAsync(searchFragmentStore: SearchFragmentStore, owner: LifecycleOwner, action: View.() -> Unit){
+        container.consumeFrom(searchFragmentStore, owner) {
+            searchEngineName = it.searchEngineSource.searchEngine.name
+            MainScope().launch(Dispatchers.Default){
+                val iconSize = container.resources.getDimensionPixelSize(R.dimen.preference_icon_drawable_size)
+
+                val scaledIcon = Bitmap.createScaledBitmap(
+                    it.searchEngineSource.searchEngine.icon,
+                    iconSize,
+                    iconSize,
+                    true)
+
+                icon = BitmapDrawable(container.resources, scaledIcon)
+            }
+        }
+
         AsyncLayoutInflater(container.context).inflate(toolbarLayout, container) { finalView, _, parent ->
+            view = finalView.findViewById((R.id.toolbar))
             with(parent!!) {
-                view = finalView.findViewById((R.id.toolbar))
-                view.editMode()
-                consumeFrom(searchStore, owner){
-                    this@ToolbarView.update(it)
-                }
-                setupView()
                 addView(finalView)
+                setupView()
+                view.editMode()
                 action()
             }
+
         }
     }
 
 
     private fun setupView(){
         view.apply {
-            android.util.Log.e("listener call back", "START")
             editMode()
 
             setScrollFlagsForTopToolbar()
@@ -137,6 +155,7 @@ class ToolbarView(
                 clear = container.context.getColorFromAttr(R.attr.primaryText)
             )
 
+            edit.setIcon(icon, searchEngineName)
             edit.setUrlBackground(
                 AppCompatResources.getDrawable(container.context, R.drawable.search_url_background))
 
@@ -153,7 +172,6 @@ class ToolbarView(
                     this@ToolbarView.interactor.onTextChanged(text)
                 }
             })
-            android.util.Log.e("listener call back", "END")
         }
 
         ToolbarAutocompleteFeature(view).apply {
@@ -168,7 +186,6 @@ class ToolbarView(
 
     fun update(searchState: SearchFragmentState) {
         if (!isInitialized) {
-            android.util.Log.e("not init","start")
             view.url = searchState.pastedText ?: searchState.query
 
             /* Only set the search terms if pasted text is null so that the search term doesn't
@@ -176,25 +193,9 @@ class ToolbarView(
             if (searchState.pastedText.isNullOrEmpty()) {
                 view.setSearchTerms(searchState.session?.searchTerms.orEmpty())
             }
-
-            view.editMode()
             isInitialized = true
-            android.util.Log.e("not init","end")
         }
-
-        android.util.Log.e("now init","start")
-        val iconSize = container.resources.getDimensionPixelSize(R.dimen.preference_icon_drawable_size)
-
-        val scaledIcon = Bitmap.createScaledBitmap(
-            searchState.searchEngineSource.searchEngine.icon,
-            iconSize,
-            iconSize,
-            true)
-
-        val icon = BitmapDrawable(container.resources, scaledIcon)
-
         view.edit.setIcon(icon, searchState.searchEngineSource.searchEngine.name)
-        android.util.Log.e("update","end")
     }
 
     companion object {
