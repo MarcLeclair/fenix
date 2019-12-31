@@ -208,7 +208,7 @@ class Core(private val context: Context) {
             SecureAbove22Preferences(context, KEY_STORAGE_NAME)
         }
     }
-    
+
     val passwordsEncryptionKey: Deferred<String> =
         MainScope().async(IO) {
             getSecureAbove22Preferences().await().getString(PASSWORDS_KEY)
