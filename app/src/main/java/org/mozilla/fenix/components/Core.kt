@@ -8,11 +8,8 @@ import GeckoProvider
 import android.content.Context
 import android.content.res.Configuration
 import io.sentry.Sentry
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers.IO
 import mozilla.components.browser.engine.gecko.GeckoEngine
 import mozilla.components.browser.engine.gecko.fetch.GeckoViewFetchClient
 import mozilla.components.browser.icons.BrowserIcons
@@ -198,18 +195,26 @@ class Core(private val context: Context) {
      * Shared Preferences that encrypt/decrypt using Android KeyStore and lib-dataprotect for 23+
      * otherwise simply stored
      */
-    fun getSecureAbove22Preferences() = SecureAbove22Preferences(context, KEY_STORAGE_NAME)
+    fun getSecureAbove22Preferences(): Deferred<SecureAbove22Preferences>{
+        return MainScope().async(IO){
+            SecureAbove22Preferences(context, KEY_STORAGE_NAME)
+        }
 
-    val passwordsEncryptionKey: String =
-        getSecureAbove22Preferences().getString(PASSWORDS_KEY)
-            ?: generateEncryptionKey(KEY_STRENGTH).also {
-                if (context.settings().passwordsEncryptionKeyGenerated) {
-                    // We already had previously generated an encryption key, but we have lost it
-                    Sentry.capture("Passwords encryption key for passwords storage was lost and we generated a new one")
+    }
+
+    val passwordsEncryptionKey: Deferred<String> =
+        MainScope().async(IO){
+            getSecureAbove22Preferences().await().getString(PASSWORDS_KEY)
+                ?: generateEncryptionKey(KEY_STRENGTH).also {
+                    if (context.settings().passwordsEncryptionKeyGenerated) {
+                        // We already had previously generated an encryption key, but we have lost it
+                        Sentry.capture("Passwords encryption key for passwords storage was lost and we generated a new one")
+                    }
+                    context.settings().recordPasswordsEncryptionKeyGenerated()
+                    getSecureAbove22Preferences().await().putString(PASSWORDS_KEY, it)
                 }
-                context.settings().recordPasswordsEncryptionKeyGenerated()
-                getSecureAbove22Preferences().putString(PASSWORDS_KEY, it)
-            }
+        }
+
 
     /**
      * Constructs a [TrackingProtectionPolicy] based on current preferences.

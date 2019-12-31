@@ -9,6 +9,9 @@ import android.os.Build
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.VisibleForTesting.PRIVATE
 import androidx.lifecycle.ProcessLifecycleOwner
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import mozilla.components.browser.storage.sync.PlacesBookmarksStorage
 import mozilla.components.browser.storage.sync.PlacesHistoryStorage
 import mozilla.components.concept.push.Bus
@@ -59,7 +62,7 @@ class BackgroundServices(
     historyStorage: PlacesHistoryStorage,
     bookmarkStorage: PlacesBookmarksStorage,
     passwordsStorage: SyncableLoginsStore,
-    secureAbove22Preferences: SecureAbove22Preferences
+    secureAbove22Preferences: Deferred<SecureAbove22Preferences>
 ) {
     // // A malformed string is causing crashes.
     // This will be removed when the string is fixed. See #5552
@@ -112,7 +115,10 @@ class BackgroundServices(
         GlobalSyncableStoreProvider.configureStore(SyncEngine.History to historyStorage)
         GlobalSyncableStoreProvider.configureStore(SyncEngine.Bookmarks to bookmarkStorage)
         GlobalSyncableStoreProvider.configureStore(SyncEngine.Passwords to passwordsStorage)
-        GlobalSyncableStoreProvider.configureKeyStorage(secureAbove22Preferences)
+        MainScope().launch{
+            GlobalSyncableStoreProvider.configureKeyStorage(secureAbove22Preferences.await())
+        }
+
     }
 
     private val deviceEventObserver = object : DeviceEventsObserver {
