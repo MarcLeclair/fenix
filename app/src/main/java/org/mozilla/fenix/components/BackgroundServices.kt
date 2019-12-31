@@ -115,10 +115,9 @@ class BackgroundServices(
         GlobalSyncableStoreProvider.configureStore(SyncEngine.History to historyStorage)
         GlobalSyncableStoreProvider.configureStore(SyncEngine.Bookmarks to bookmarkStorage)
         GlobalSyncableStoreProvider.configureStore(SyncEngine.Passwords to passwordsStorage)
-        MainScope().launch{
+        MainScope().launch {
             GlobalSyncableStoreProvider.configureKeyStorage(secureAbove22Preferences.await())
         }
-
     }
 
     private val deviceEventObserver = object : DeviceEventsObserver {

@@ -8,8 +8,15 @@ import GeckoProvider
 import android.content.Context
 import android.content.res.Configuration
 import io.sentry.Sentry
-import kotlinx.coroutines.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Deferred
 import mozilla.components.browser.engine.gecko.GeckoEngine
 import mozilla.components.browser.engine.gecko.fetch.GeckoViewFetchClient
 import mozilla.components.browser.icons.BrowserIcons
@@ -49,6 +56,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Component group for all core browser functionality.
  */
+@Suppress("MaxLineLength")
 @Mockable
 class Core(private val context: Context) {
     /**
@@ -195,15 +203,14 @@ class Core(private val context: Context) {
      * Shared Preferences that encrypt/decrypt using Android KeyStore and lib-dataprotect for 23+
      * otherwise simply stored
      */
-    fun getSecureAbove22Preferences(): Deferred<SecureAbove22Preferences>{
-        return MainScope().async(IO){
+    fun getSecureAbove22Preferences(): Deferred<SecureAbove22Preferences> {
+        return MainScope().async(IO) {
             SecureAbove22Preferences(context, KEY_STORAGE_NAME)
         }
-
     }
-
+    
     val passwordsEncryptionKey: Deferred<String> =
-        MainScope().async(IO){
+        MainScope().async(IO) {
             getSecureAbove22Preferences().await().getString(PASSWORDS_KEY)
                 ?: generateEncryptionKey(KEY_STRENGTH).also {
                     if (context.settings().passwordsEncryptionKeyGenerated) {
@@ -214,7 +221,6 @@ class Core(private val context: Context) {
                     getSecureAbove22Preferences().await().putString(PASSWORDS_KEY, it)
                 }
         }
-
 
     /**
      * Constructs a [TrackingProtectionPolicy] based on current preferences.
