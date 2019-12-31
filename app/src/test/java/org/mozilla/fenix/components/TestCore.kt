@@ -6,6 +6,7 @@ package org.mozilla.fenix.components
 
 import android.content.Context
 import io.mockk.mockk
+import kotlinx.coroutines.Deferred
 import mozilla.components.browser.engine.gecko.GeckoEngine
 import mozilla.components.browser.session.SessionManager
 import mozilla.components.browser.state.store.BrowserStore
@@ -18,5 +19,5 @@ class TestCore(context: Context) : Core(context) {
     override val sessionManager = SessionManager(engine)
     override val store = mockk<BrowserStore>()
     override val webAppShortcutManager = mockk<WebAppShortcutManager>()
-    override fun getSecureAbove22Preferences() = mockk<SecureAbove22Preferences>(relaxed = true)
+    override fun getSecureAbove22Preferences() = mockk<Deferred<SecureAbove22Preferences>>(relaxed = true)
 }
