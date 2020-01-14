@@ -223,7 +223,7 @@ class HomeFragment : Fragment() {
             homeViewModel.layoutManagerState?.also { parcelable ->
                 sessionControlView.view.layoutManager?.onRestoreInstanceState(parcelable)
             }
-            homeLayout?.progress = homeViewModel.motionLayoutProgress
+           // homeLayout?.progress = homeViewModel.motionLayoutProgress
             homeViewModel.layoutManagerState = null
         }
 
@@ -436,7 +436,7 @@ class HomeFragment : Fragment() {
         }
         homeViewModel.layoutManagerState =
             sessionControlView.view.layoutManager?.onSaveInstanceState()
-        homeViewModel.motionLayoutProgress = homeLayout?.progress ?: 0F
+        //homeViewModel.motionLayoutProgress = homeLayout?.progress ?: 0F
     }
 
     override fun onResume() {
