@@ -9,10 +9,9 @@ import android.content.DialogInterface
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.os.Handler
+import android.util.Log
+import android.view.*
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.PopupWindow
@@ -61,6 +60,7 @@ import mozilla.components.feature.tab.collections.TabCollection
 import org.mozilla.fenix.BrowserDirection
 import org.mozilla.fenix.HomeActivity
 import org.mozilla.fenix.R
+import org.mozilla.fenix.Timer
 import org.mozilla.fenix.browser.browsingmode.BrowsingMode
 import org.mozilla.fenix.components.FenixSnackbar
 import org.mozilla.fenix.components.PrivateShortcutCreateManager
@@ -91,7 +91,7 @@ import kotlin.math.min
 @SuppressWarnings("TooManyFunctions", "LargeClass")
 class HomeFragment : Fragment() {
     private val browsingModeManager get() = (activity as HomeActivity).browsingModeManager
-
+    lateinit var frameMetricsVar : FrameMetrics
     private val singleSessionObserver = object : Session.Observer {
         override fun onTitleChanged(session: Session, title: String) {
             if (deleteAllSessionsJob == null) emitSessionChanges()
@@ -197,13 +197,15 @@ class HomeFragment : Fragment() {
 
         sessionControlView = SessionControlView(homeFragmentStore, view.homeLayout, sessionControlInteractor)
 
-        ConstraintSet().apply {
-            clone(view.homeLayout)
-            connect(sessionControlView.view.id, TOP, view.wordmark_spacer.id, BOTTOM)
-            connect(sessionControlView.view.id, START, PARENT_ID, START)
-            connect(sessionControlView.view.id, END, PARENT_ID, END)
-            connect(sessionControlView.view.id, BOTTOM, view.bottom_bar.id, TOP)
-            applyTo(view.homeLayout)
+        sessionControlView.loadAsync {
+            ConstraintSet().apply {
+                clone(view.homeLayout)
+                connect(sessionControlView.view.id, TOP, view.wordmark_spacer.id, BOTTOM)
+                connect(sessionControlView.view.id, START, PARENT_ID, START)
+                connect(sessionControlView.view.id, END, PARENT_ID, END)
+                connect(sessionControlView.view.id, BOTTOM, view.bottom_bar.id, TOP)
+                applyTo(view.homeLayout)
+            }
         }
 
         activity.themeManager.applyStatusBarTheme(activity)
@@ -440,7 +442,85 @@ class HomeFragment : Fragment() {
     }
 
     override fun onResume() {
+        var handler = Handler()
+        this.activity!!.window.addOnFrameMetricsAvailableListener({ _, frameMetrics, _ ->
+            frameMetricsVar = FrameMetrics(frameMetrics)
+        }, handler)
+
+        handler.postDelayed({
+            Log.d(
+                "HomeFragment Metrics",
+                "ANIMATION_DURATION: " + frameMetricsVar.getMetric(FrameMetrics.ANIMATION_DURATION) / Math.pow(
+                    10.0,
+                    6.0
+                )
+            )
+            Log.d(
+                "HomeFragment Metrics",
+                "COMMAND_ISSUE_DURATION: " + frameMetricsVar.getMetric(FrameMetrics.COMMAND_ISSUE_DURATION) / Math.pow(
+                    10.0,
+                    6.0
+                )
+            )
+            Log.d(
+                "HomeFragment Metrics",
+                "DRAW_DURATION: " + frameMetricsVar.getMetric(FrameMetrics.DRAW_DURATION) / Math.pow(
+                    10.0,
+                    6.0
+                )
+            )
+            Log.d(
+                "HomeFragment Metrics",
+                "FIRST_DRAW_FRAME: " + frameMetricsVar.getMetric(FrameMetrics.FIRST_DRAW_FRAME) / Math.pow(
+                    10.0,
+                    6.0
+                )
+            )
+            Log.d(
+                "HomeFragment Metrics",
+                "INPUT_HANDLING_DURATION: " + frameMetricsVar.getMetric(FrameMetrics.INPUT_HANDLING_DURATION) / Math.pow(
+                    10.0,
+                    6.0
+                )
+            )
+            Log.d(
+                "HomeFragment Metrics",
+                "LAYOUT_MEASURE_DURATION: " + frameMetricsVar.getMetric(FrameMetrics.LAYOUT_MEASURE_DURATION) / Math.pow(
+                    10.0,
+                    6.0
+                )
+            )
+            Log.d(
+                "HomeFragment Metrics",
+                "SWAP_BUFFERS_DURATION: " + frameMetricsVar.getMetric(FrameMetrics.SWAP_BUFFERS_DURATION) / Math.pow(
+                    10.0,
+                    6.0
+                )
+            )
+            Log.d(
+                "HomeFragment Metrics",
+                "SYNC_DURATION: " + frameMetricsVar.getMetric(FrameMetrics.SYNC_DURATION) / Math.pow(
+                    10.0,
+                    6.0
+                )
+            )
+            Log.d(
+                "HomeFragment Metrics",
+                "TOTAL_DURATION: " + frameMetricsVar.getMetric(FrameMetrics.TOTAL_DURATION) / Math.pow(
+                    10.0,
+                    6.0
+                )
+            )
+            Log.d(
+                "HomeFragment Metrics",
+                "UNKNOWN_DELAY_DURATION: " + frameMetricsVar.getMetric(FrameMetrics.UNKNOWN_DELAY_DURATION) / Math.pow(
+                    10.0,
+                    6.0
+                )
+            )
+        }, 2000)
         super.onResume()
+        Timer.getTimeElapsed(System.nanoTime())
         hideToolbar()
     }
 

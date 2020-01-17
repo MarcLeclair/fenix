@@ -8,6 +8,7 @@ import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.asynclayoutinflater.view.AsyncLayoutInflater
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -133,31 +134,57 @@ class SessionControlView(
 ) : LayoutContainer {
     override val containerView: View?
         get() = container
+    private val mInteractor = interactor
+//    val view: RecyclerView = LayoutInflater.from(container.context)
+//        .inflate(R.layout.component_session_control, container, true)
+//        .findViewById(R.id.home_component)
 
-    val view: RecyclerView = LayoutInflater.from(container.context)
-        .inflate(R.layout.component_session_control, container, true)
-        .findViewById(R.id.home_component)
+    private val sessionControlAdapter = SessionControlAdapter(container.context, interactor)
+    lateinit var view: RecyclerView
+//    init {
+////        view.setHasFixedSize(true)
+////        view.apply {
+////            adapter = sessionControlAdapter
+////            layoutManager = LinearLayoutManager(container.context)
+////            val itemTouchHelper =
+////                ItemTouchHelper(
+////                    SwipeToDeleteCallback(
+////                        interactor
+////                    )
+////                )
+////            itemTouchHelper.attachToRecyclerView(this)
+////
+////            view.consumeFrom(homeFragmentStore, ProcessLifecycleOwner.get()) {
+////                update(it)
+////            }
+////        }
+//            }
+//    }
 
-    private val sessionControlAdapter = SessionControlAdapter(interactor)
+    fun loadAsync(action: View.() -> Unit) {
+        AsyncLayoutInflater(container.context).inflate(R.layout.component_session_control, container) { finalView, _, parent ->
+            view = finalView as RecyclerView
+            with(parent!!) {
+                addView(finalView)
+                finalView.apply {
+                    finalView.adapter = sessionControlAdapter
+                    layoutManager = LinearLayoutManager(container.context)
+                    val itemTouchHelper =
+                        ItemTouchHelper(
+                            SwipeToDeleteCallback(
+                               this@SessionControlView.mInteractor
+                            )
+                        )
+                    itemTouchHelper.attachToRecyclerView(this)
 
-    init {
-        view.apply {
-            adapter = sessionControlAdapter
-            layoutManager = LinearLayoutManager(container.context)
-            val itemTouchHelper =
-                ItemTouchHelper(
-                    SwipeToDeleteCallback(
-                        interactor
-                    )
-                )
-            itemTouchHelper.attachToRecyclerView(this)
-
-            view.consumeFrom(homeFragmentStore, ProcessLifecycleOwner.get()) {
-                update(it)
+                    finalView.consumeFrom(homeFragmentStore, ProcessLifecycleOwner.get()) {
+                        this@SessionControlView.update(it)
+                    }
+                }
+                action()
             }
         }
     }
-
     fun update(state: HomeFragmentState) {
         // Workaround for list not updating until scroll on Android 5 + 6
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -166,3 +193,4 @@ class SessionControlView(
         sessionControlAdapter.submitList(state.toAdapterList())
     }
 }
+
