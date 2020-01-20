@@ -7,7 +7,6 @@ package org.mozilla.fenix
 import android.content.Context
 import kotlinx.coroutines.runBlocking
 import mozilla.components.support.migration.FennecMigrator
-import mozilla.components.support.migration.state.MigrationStore
 
 /**
  * An application class which knows how to migrate Fennec data.
@@ -19,21 +18,19 @@ class MigratingFenixApplication : FenixApplication() {
             .migrateHistory(this.components.core.historyStorage)
             .migrateBookmarks(this.components.core.bookmarksStorage)
             .migrateLogins(
-                this.components.core.passwordsStorage.store,
+                this.components.core.asyncPasswordsStorage,
                 this.components.core.passwordsEncryptionKey
             )
             .migrateFxa(this.components.backgroundServices.accountManager)
             .migrateAddons(this.components.core.engine)
+            .migrateTelemetryIdentifiers()
             .build()
     }
 
-    val migrationStore by lazy { MigrationStore() }
-
     val migrationPushSubscriber by lazy {
-        MigrationPushSubscriber(
-            this,
-            components.backgroundServices.pushService,
-            migrationStore
+        MigrationPushRenewer(
+            components.backgroundServices.push,
+            components.migrationStore
         )
     }
 
@@ -46,7 +43,7 @@ class MigratingFenixApplication : FenixApplication() {
 
         // The rest of the migrations can happen now.
         migrationPushSubscriber.start()
-        migrator.startMigrationIfNeeded(migrationStore, MigrationService::class.java)
+        migrator.startMigrationIfNeeded(components.migrationStore, MigrationService::class.java)
     }
 
     private fun migrateBlocking() {
@@ -65,8 +62,4 @@ class MigratingFenixApplication : FenixApplication() {
 
 fun Context.getMigratorFromApplication(): FennecMigrator {
     return (applicationContext as MigratingFenixApplication).migrator
-}
-
-fun Context.getMigrationStoreFromApplication(): MigrationStore {
-    return (applicationContext as MigratingFenixApplication).migrationStore
 }
