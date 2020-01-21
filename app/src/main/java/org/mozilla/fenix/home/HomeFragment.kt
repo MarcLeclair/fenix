@@ -9,22 +9,27 @@ import android.content.DialogInterface
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.os.Handler
+import android.view.*
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.PopupWindow
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.constraintlayout.widget.ConstraintSet.BOTTOM
 import androidx.constraintlayout.widget.ConstraintSet.END
 import androidx.constraintlayout.widget.ConstraintSet.PARENT_ID
 import androidx.constraintlayout.widget.ConstraintSet.START
 import androidx.constraintlayout.widget.ConstraintSet.TOP
+import org.mozilla.fenix.Timer
+
+
 import androidx.core.view.updateLayoutParams
+
+import androidx.coordinatorlayout.widget.CoordinatorLayout
+
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -40,14 +45,12 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE
 import androidx.transition.TransitionInflater
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.fragment_browser.*
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.android.synthetic.main.fragment_home.view.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import mozilla.appservices.places.BookmarkRoot
 import mozilla.components.browser.menu.BrowserMenu
 import mozilla.components.browser.session.Session
@@ -158,6 +161,7 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
+     //   debugLayout(view)
         val activity = activity as HomeActivity
 
         currentMode = CurrentMode(
@@ -197,21 +201,35 @@ class HomeFragment : Fragment() {
             )
         )
 
-        sessionControlView = SessionControlView(homeFragmentStore, view.homeLayout, sessionControlInteractor)
+         sessionControlView = SessionControlView(homeFragmentStore, view.homeLayout, sessionControlInteractor)
+//
+//
+//        ConstraintSet().apply {
+//            clone(view.homeLayout)
+//            connect(sessionControlView.view.id, TOP, view.wordmark.id, BOTTOM)
+//            connect(sessionControlView.view.id, START, PARENT_ID, START)
+//            connect(sessionControlView.view.id, END, PARENT_ID, END)
+//            connect(sessionControlView.view.id, BOTTOM, view.bottom_bar.id, TOP)
+//            applyTo(view.homeLayout)
+//        }
+//
+//        @Suppress("MagicNumber") // we need constants if we define layouts in code.
+//        sessionControlView.view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+//            topMargin = 32.dpToPx(resources.displayMetrics)
+//        }
 
-        ConstraintSet().apply {
-            clone(view.homeLayout)
-            connect(sessionControlView.view.id, TOP, view.wordmark.id, BOTTOM)
-            connect(sessionControlView.view.id, START, PARENT_ID, START)
-            connect(sessionControlView.view.id, END, PARENT_ID, END)
-            connect(sessionControlView.view.id, BOTTOM, view.bottom_bar.id, TOP)
-            applyTo(view.homeLayout)
-        }
+//        sessionControlView.loadAsync {
+//            debugLayout(sessionControlView.view)
+//            val stub =   findViewById<ViewStub>(R.id.recycler_stub)
+//            var inflated = stub.inflate()
+//        }
 
-        @Suppress("MagicNumber") // we need constants if we define layouts in code.
-        sessionControlView.view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-            topMargin = 32.dpToPx(resources.displayMetrics)
-        }
+//        ---- SOLUTION #1 ----
+        (view.findViewById(R.id.recycler_stub) as ViewStub).inflate()
+        var handler = Handler()
+        handler.postDelayed({
+            sessionControlView.loadAsync(view.findViewById(R.id.recycler_stub))
+        }, 100000)
 
         activity.themeManager.applyStatusBarTheme(activity)
 
@@ -308,9 +326,11 @@ class HomeFragment : Fragment() {
             }
         }
 
+
         // We need the shadow to be above the components.
         bottomBarShadow.bringToFront()
     }
+
 
     override fun onDestroyView() {
         homeMenu = null
@@ -788,6 +808,36 @@ class HomeFragment : Fragment() {
         private const val CFR_WIDTH_DIVIDER = 1.7
         private const val CFR_Y_OFFSET = -20
     }
+
+//     fun debugLayout(view: View) {
+//
+//
+//         val listener = view.viewTreeObserver.addOnDrawListener {
+//             if (view.findViewById<RecyclerView>(R.id.recycler_stub) is RecyclerView) this.activity!!.runOnUiThread {
+//                 sessionControlView.loadAsync(view.findViewById(R.id.recycler_stub))
+//                 android.util.Log.e("yikes","yikes")
+//             }
+//            android.util.Log.e("HomeFrag Draw Listener","here ")
+//        }
+//
+//        view.viewTreeObserver.addOnGlobalLayoutListener {
+//            if(view.findViewById<RecyclerView>(R.id.recycler_stub) is RecyclerView){
+//                sessionControlView.loadAsync(view.findViewById(R.id.recycler_stub))
+//            }
+//            android.util.Log.e("HomeFrag Layout","here")
+//        }
+//
+//        view.viewTreeObserver.addOnPreDrawListener {
+//            if(view.findViewById<RecyclerView>(R.id.recycler_stub) is RecyclerView){
+//                sessionControlView.loadAsync(view.findViewById(R.id.recycler_stub))
+//            }
+//            android.util.Log.e("HomeFrag Pre Draw","here")
+//            true
+//        }
+//         }
+//
+//         view.viewTreeObserver.removeOnDrawListener(listener)
+//     }
 }
 
 /**

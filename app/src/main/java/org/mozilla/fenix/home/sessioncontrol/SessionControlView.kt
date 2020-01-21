@@ -8,6 +8,7 @@ import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewStub
 import androidx.asynclayoutinflater.view.AsyncLayoutInflater
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -139,7 +140,7 @@ class SessionControlView(
 //        .inflate(R.layout.component_session_control, container, true)
 //        .findViewById(R.id.home_component)
 
-    private val sessionControlAdapter = SessionControlAdapter(container.context, interactor)
+    private val sessionControlAdapter = SessionControlAdapter(interactor)
     lateinit var view: RecyclerView
 //    init {
 ////        view.setHasFixedSize(true)
@@ -161,30 +162,69 @@ class SessionControlView(
 //            }
 //    }
 
-    fun loadAsync(action: View.() -> Unit) {
-        AsyncLayoutInflater(container.context).inflate(R.layout.component_session_control, container) { finalView, _, parent ->
-            view = finalView as RecyclerView
-            with(parent!!) {
-                addView(finalView)
-                finalView.apply {
-                    finalView.adapter = sessionControlAdapter
-                    layoutManager = LinearLayoutManager(container.context)
-                    val itemTouchHelper =
-                        ItemTouchHelper(
-                            SwipeToDeleteCallback(
-                               this@SessionControlView.mInteractor
-                            )
-                        )
-                    itemTouchHelper.attachToRecyclerView(this)
+//      fun setup(stub: ViewStub){
+//          view = stub.inflate() as RecyclerView
+//          view.apply{
+//              adapter = sessionControlAdapter
+//              layoutManager = LinearLayoutManager(container.context)
+//              val itemTouchHelper =
+//                  ItemTouchHelper(
+//                      SwipeToDeleteCallback(
+//                          this@SessionControlView.mInteractor
+//                      )
+//                  )
+//              itemTouchHelper.attachToRecyclerView(view)
+//
+//              view.consumeFrom(homeFragmentStore, ProcessLifecycleOwner.get()) {
+//                  this@SessionControlView.update(it)
+//              }
+//          }
+//      }
+//    fun loadAsync(action: View.() -> Unit) {
+//        AsyncLayoutInflater(container.context).inflate(R.layout.component_session_control, container) { finalView, _, _ ->
+//            view = finalView as RecyclerView
+//            with(container) {
+//                addView(finalView)
+//                finalView.apply {
+//                    finalView.adapter = sessionControlAdapter
+//                    layoutManager = LinearLayoutManager(container.context)
+//                    val itemTouchHelper =
+//                        ItemTouchHelper(
+//                            SwipeToDeleteCallback(
+//                               this@SessionControlView.mInteractor
+//                            )
+//                        )
+//                    itemTouchHelper.attachToRecyclerView(this)
+//
+//                    finalView.consumeFrom(homeFragmentStore, ProcessLifecycleOwner.get()) {
+//                        this@SessionControlView.update(it)
+//                    }
+//                }
+//                action()
+//            }
+//        }
+//    }
 
-                    finalView.consumeFrom(homeFragmentStore, ProcessLifecycleOwner.get()) {
-                        this@SessionControlView.update(it)
-                    }
-                }
-                action()
+    fun loadAsync(viewStub: RecyclerView){
+       // view = viewStub.inflate() as RecyclerView
+        view = viewStub
+        view.apply{
+            adapter = sessionControlAdapter
+            layoutManager = LinearLayoutManager(container.context)
+            val itemTouchHelper =
+                ItemTouchHelper(
+                    SwipeToDeleteCallback(
+                        this@SessionControlView.mInteractor
+                    )
+                )
+            itemTouchHelper.attachToRecyclerView(this)
+
+            view.consumeFrom(homeFragmentStore, ProcessLifecycleOwner.get()) {
+                update(it)
             }
         }
     }
+
     fun update(state: HomeFragmentState) {
         // Workaround for list not updating until scroll on Android 5 + 6
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
