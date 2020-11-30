@@ -17,4 +17,3 @@ fun packageManagerMonitor(context: Context): PackageManager {
     PackageManagerMonitored.count.getAndIncrementNoOverflow()
     return context.packageManager
 }
-

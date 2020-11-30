@@ -26,40 +26,48 @@ private const val EXPECTED_COMPONENT_INIT_COUNT = 42
 private const val EXPECTED_VIEW_HIERARCHY_DEPTH = 12
 private const val EXPECTED_RECYCLER_VIEW_CONSTRAINT_LAYOUT_CHILDREN = 4
 private const val EXPECTED_NUMBER_OF_INFLATION = 12
+private const val EXPECTED_NUMBER_OF_PACKAGEMANAGER = 0
 
 private val failureMsgStrictMode = getErrorMessage(
-    shortName = "StrictMode suppression",
-    implications = "suppressing a StrictMode violation can introduce performance regressions?"
+        shortName = "StrictMode suppression",
+        implications = "suppressing a StrictMode violation can introduce performance regressions?"
 )
 
 private val failureMsgRunBlocking = getErrorMessage(
-    shortName = "runBlockingIncrement",
-    implications = "using runBlocking may block the main thread and have other negative performance implications?"
+        shortName = "runBlockingIncrement",
+        implications = "using runBlocking may block the main thread and have other negative performance implications?"
 )
 
 private val failureMsgComponentInit = getErrorMessage(
-    shortName = "Component init",
-    implications = "initializing new components on start up may be an indication that we're doing more work than necessary on start up?"
+        shortName = "Component init",
+        implications = "initializing new components on start up may be an indication that we're doing more work than necessary on start up?"
 )
 
 private val failureMsgViewHierarchyDepth = getErrorMessage(
-    shortName = "view hierarchy depth",
-    implications = "having a deep view hierarchy can slow down measure/layout performance?"
+        shortName = "view hierarchy depth",
+        implications = "having a deep view hierarchy can slow down measure/layout performance?"
 ) + "Please note that we're not sure if this is a useful metric to assert: with your feedback, " +
-    "we'll find out over time if it is or is not."
+        "we'll find out over time if it is or is not."
 
 private val failureMsgRecyclerViewConstraintLayoutChildren = getErrorMessage(
-    shortName = "ConstraintLayout being a common direct descendant of a RecyclerView",
-    implications = "ConstraintLayouts are slow to inflate and are primarily used to flatten deep " +
-        "view hierarchies so can be under-performant as a common RecyclerView child?"
+        shortName = "ConstraintLayout being a common direct descendant of a RecyclerView",
+        implications = "ConstraintLayouts are slow to inflate and are primarily used to flatten deep " +
+                "view hierarchies so can be under-performant as a common RecyclerView child?"
 ) + "Please note that we're not sure if this is a useful metric to assert: with your feedback, " +
-    "we'll find out over time if it is or is not."
+        "we'll find out over time if it is or is not."
 
 private val failureMsgNumberOfInflation = getErrorMessage(
-    shortName = "Number of inflation on start up doesn't match expected count",
-    implications = "The number of inflation can negatively impact start up time. Having more inflations" +
-            "will most likely mean we're adding extra work on the UI thread."
+        shortName = "Number of inflation on start up doesn't match expected count",
+        implications = "The number of inflation can negatively impact start up time. Having more inflations" +
+                "will most likely mean we're adding extra work on the UI thread."
 )
+
+private val failureMessageOfPackageManager = getErrorMessage(
+        shortName = "Number of packageManager calls doesn't match expected count ",
+        implications = "Using packageManager can slow down start up. If it is absolutely needed," +
+                "it should be moved off the start up path"
+)
+
 /**
  * A performance test to limit the number of StrictMode suppressions and number of runBlocking used
  * on startup.
@@ -91,6 +99,7 @@ class StartupExcessiveResourceUseTest {
         val actualSuppresionCount = activityTestRule.activity.components.strictMode.suppressionCount.get().toInt()
         val actualRunBlocking = RunBlockingCounter.count.get()
         val actualComponentInitCount = ComponentInitCount.count.get()
+        val actualPackageManagerCount = PackageManagerMonitored.count.get()
 
         val rootView = activityTestRule.activity.rootContainer
         val actualViewHierarchyDepth = countAndLogViewHierarchyDepth(rootView, 1)
@@ -103,11 +112,12 @@ class StartupExcessiveResourceUseTest {
         assertEquals(failureMsgComponentInit, EXPECTED_COMPONENT_INIT_COUNT, actualComponentInitCount)
         assertEquals(failureMsgViewHierarchyDepth, EXPECTED_VIEW_HIERARCHY_DEPTH, actualViewHierarchyDepth)
         assertEquals(
-            failureMsgRecyclerViewConstraintLayoutChildren,
-            EXPECTED_RECYCLER_VIEW_CONSTRAINT_LAYOUT_CHILDREN,
-            actualRecyclerViewConstraintLayoutChildren
+                failureMsgRecyclerViewConstraintLayoutChildren,
+                EXPECTED_RECYCLER_VIEW_CONSTRAINT_LAYOUT_CHILDREN,
+                actualRecyclerViewConstraintLayoutChildren
         )
         assertEquals(failureMsgNumberOfInflation, EXPECTED_COMPONENT_INIT_COUNT, actualNumberOfInflations)
+        assertEquals(failureMessageOfPackageManager, EXPECTED_NUMBER_OF_PACKAGEMANAGER, actualPackageManagerCount)
     }
 }
 
