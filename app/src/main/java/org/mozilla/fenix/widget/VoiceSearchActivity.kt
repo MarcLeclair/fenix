@@ -37,7 +37,8 @@ class VoiceSearchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).resolveActivity(packageManagerMonitor(baseContext)) == null) {
+        if (Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                        .resolveActivity(packageManagerMonitor(baseContext)) == null) {
             finish()
             return
         }
