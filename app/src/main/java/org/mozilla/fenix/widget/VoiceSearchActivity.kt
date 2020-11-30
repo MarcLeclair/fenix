@@ -16,6 +16,7 @@ import org.mozilla.fenix.IntentReceiverActivity
 import org.mozilla.fenix.components.metrics.Event
 import org.mozilla.fenix.ext.components
 import org.mozilla.fenix.ext.metrics
+import org.mozilla.fenix.perf.packageManagerMonitor
 
 /**
  * Launches voice recognition then uses it to start a new web search.
@@ -36,7 +37,7 @@ class VoiceSearchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).resolveActivity(packageManager) == null) {
+        if (Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).resolveActivity(packageManagerMonitor(baseContext)) == null) {
             finish()
             return
         }

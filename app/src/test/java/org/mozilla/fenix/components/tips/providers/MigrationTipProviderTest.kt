@@ -34,6 +34,7 @@ import org.mozilla.fenix.components.tips.TipType
 import org.mozilla.fenix.ext.intentFilterEq
 import org.mozilla.fenix.ext.settings
 import org.mozilla.fenix.helpers.FenixRobolectricTestRunner
+import org.mozilla.fenix.perf.packageManagerMonitored
 import org.mozilla.fenix.settings.SupportUtils
 import org.mozilla.fenix.utils.Settings
 
@@ -89,7 +90,7 @@ class MigrationTipProviderTest {
     fun `test FIREFOX_NIGHTLY fenix installed tip`() {
         val launchIntent = mockk<Intent>()
         every { context.packageName } returns MozillaProducts.FIREFOX_NIGHTLY.productName
-        every { context.packageManager.getLaunchIntentForPackage(MozillaProducts.FENIX.productName) } returns launchIntent
+        every { packageManagerMonitored(context).getLaunchIntentForPackage(MozillaProducts.FENIX.productName) } returns launchIntent
         every { MozillaProductDetector.packageIsInstalled(context, MozillaProducts.FENIX.productName) } returns true
         val provider = MigrationTipProvider(context)
 

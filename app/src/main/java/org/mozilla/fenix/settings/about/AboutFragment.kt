@@ -24,6 +24,7 @@ import org.mozilla.fenix.components.metrics.Event
 import org.mozilla.fenix.crashes.CrashListActivity
 import org.mozilla.fenix.ext.requireComponents
 import org.mozilla.fenix.ext.settings
+import org.mozilla.fenix.perf.packageManagerMonitor
 import org.mozilla.fenix.settings.SupportUtils
 import org.mozilla.fenix.settings.about.AboutItemType.LICENSING_INFO
 import org.mozilla.fenix.settings.about.AboutItemType.PRIVACY_NOTICE
@@ -91,7 +92,7 @@ class AboutFragment : Fragment(), AboutPageListener {
     private fun populateAboutHeader() {
         val aboutText = try {
             val packageInfo =
-                requireContext().packageManager.getPackageInfo(requireContext().packageName, 0)
+                packageManagerMonitor(requireContext()).getPackageInfo(requireContext().packageName, 0)
             val versionCode = PackageInfoCompat.getLongVersionCode(packageInfo).toString()
             val componentsAbbreviation = getString(R.string.components_abbreviation)
             val componentsVersion =

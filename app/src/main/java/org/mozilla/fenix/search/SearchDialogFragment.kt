@@ -65,6 +65,7 @@ import org.mozilla.fenix.ext.components
 import org.mozilla.fenix.ext.isKeyboardVisible
 import org.mozilla.fenix.ext.requireComponents
 import org.mozilla.fenix.ext.settings
+import org.mozilla.fenix.perf.packageManagerMonitor
 import org.mozilla.fenix.search.awesomebar.AwesomeBarView
 import org.mozilla.fenix.search.toolbar.ToolbarView
 import org.mozilla.fenix.settings.SupportUtils
@@ -524,7 +525,8 @@ class SearchDialogFragment : AppCompatDialogFragment(), UserInteractionHandler {
         startActivityForResult(speechIntent, VoiceSearchActivity.SPEECH_REQUEST_CODE)
     }
 
-    private fun isSpeechAvailable(): Boolean = speechIntent.resolveActivity(requireContext().packageManager) != null
+    private fun isSpeechAvailable(): Boolean =
+        speechIntent.resolveActivity(packageManagerMonitor(requireContext())) != null
 
     private fun updateClipboardSuggestion(searchState: SearchFragmentState, clipboardUrl: String?) {
         val shouldShowView = searchState.showClipboardSuggestions &&

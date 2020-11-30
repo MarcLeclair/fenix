@@ -16,6 +16,7 @@ import org.mozilla.fenix.components.tips.Tip
 import org.mozilla.fenix.components.tips.TipProvider
 import org.mozilla.fenix.components.tips.TipType
 import org.mozilla.fenix.ext.settings
+import org.mozilla.fenix.perf.packageManagerMonitor
 import org.mozilla.fenix.settings.SupportUtils
 
 /**
@@ -90,7 +91,7 @@ class MigrationTipProvider(private val context: Context) : TipProvider {
 
     private fun getNightlyMigrationAction() {
         return if (MozillaProductDetector.packageIsInstalled(context, FENIX.productName)) {
-            context.startActivity(context.packageManager.getLaunchIntentForPackage(FENIX.productName))
+            context.startActivity(packageManagerMonitor(context).getLaunchIntentForPackage(FENIX.productName))
         } else {
             context.startActivity(Intent(
                 Intent.ACTION_VIEW, Uri.parse(SupportUtils.FIREFOX_NIGHTLY_PLAY_STORE_URL)

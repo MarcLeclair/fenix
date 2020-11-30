@@ -27,6 +27,7 @@ import org.mozilla.fenix.components.metrics.Event
 import org.mozilla.fenix.ext.metrics
 import org.mozilla.fenix.ext.settings
 import org.mozilla.fenix.home.intent.StartSearchIntentProcessor
+import org.mozilla.fenix.perf.packageManagerMonitor
 import org.mozilla.fenix.widget.VoiceSearchActivity
 import org.mozilla.fenix.widget.VoiceSearchActivity.Companion.SPEECH_PROCESSING
 
@@ -106,7 +107,7 @@ class SearchWidgetProvider : AppWidgetProvider() {
 
         val intentSpeech = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
 
-        return intentSpeech.resolveActivity(context.packageManager)?.let {
+        return intentSpeech.resolveActivity(packageManagerMonitor(context))?.let {
             PendingIntent.getActivity(context,
                 REQUEST_CODE_VOICE, voiceIntent, 0)
         }

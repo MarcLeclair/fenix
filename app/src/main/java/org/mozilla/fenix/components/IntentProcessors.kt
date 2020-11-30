@@ -20,6 +20,7 @@ import mozilla.components.support.migration.state.MigrationStore
 import org.mozilla.fenix.customtabs.FennecWebAppIntentProcessor
 import org.mozilla.fenix.home.intent.FennecBookmarkShortcutsIntentProcessor
 import org.mozilla.fenix.perf.lazyMonitored
+import org.mozilla.fenix.perf.packageManagerMonitor
 import org.mozilla.fenix.utils.Mockable
 
 /**
@@ -64,7 +65,7 @@ class IntentProcessors(
             TrustedWebActivityIntentProcessor(
                 sessionManager = sessionManager,
                 loadUrlUseCase = sessionUseCases.loadUrl,
-                packageManager = context.packageManager,
+                packageManager = packageManagerMonitor(context),
                 relationChecker = relationChecker,
                 store = customTabsStore
             ),

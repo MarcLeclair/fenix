@@ -25,6 +25,7 @@ import mozilla.components.feature.share.RecentAppsStorage
 import mozilla.components.service.fxa.manager.FxaAccountManager
 import org.mozilla.fenix.ext.components
 import org.mozilla.fenix.ext.isOnline
+import org.mozilla.fenix.perf.packageManagerMonitor
 import org.mozilla.fenix.share.listadapters.AppShareOption
 import org.mozilla.fenix.share.listadapters.SyncShareOption
 
@@ -136,7 +137,7 @@ class ShareViewModel(application: Application) : AndroidViewModel(application) {
     @VisibleForTesting
     @WorkerThread
     fun getIntentActivities(shareIntent: Intent, context: Context): List<ResolveInfo>? {
-        return context.packageManager.queryIntentActivities(shareIntent, 0)
+        return packageManagerMonitor(context).queryIntentActivities(shareIntent, 0)
     }
 
     /**
@@ -154,8 +155,8 @@ class ShareViewModel(application: Application) : AndroidViewModel(application) {
             .filter { it.activityInfo.packageName != context.packageName }
             .map { resolveInfo ->
                 AppShareOption(
-                    resolveInfo.loadLabel(context.packageManager).toString(),
-                    resolveInfo.loadIcon(context.packageManager),
+                    resolveInfo.loadLabel(packageManagerMonitor(context)).toString(),
+                    resolveInfo.loadIcon(packageManagerMonitor(context)),
                     resolveInfo.activityInfo.packageName,
                     resolveInfo.activityInfo.name
                 )
