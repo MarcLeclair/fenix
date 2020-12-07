@@ -38,6 +38,7 @@ import org.mozilla.fenix.components.metrics.Event
 import org.mozilla.fenix.components.metrics.MetricController
 import org.mozilla.fenix.ext.components
 import org.mozilla.fenix.ext.getRootView
+import org.mozilla.fenix.ext.loadNavGraphBeforeNavigate
 import org.mozilla.fenix.ext.nav
 import org.mozilla.fenix.ext.navigateSafe
 import org.mozilla.fenix.settings.deletebrowsingdata.deleteAndQuit
@@ -89,7 +90,7 @@ class DefaultBrowserToolbarMenuController(
         Do exhaustive when (item) {
             is ToolbarMenu.Item.Back -> {
                 if (item.viewHistory) {
-                    navController.navigate(
+                    navController.loadNavGraphBeforeNavigate(
                         BrowserFragmentDirections.actionGlobalTabHistoryDialogFragment(
                             activeSessionId = customTabSession?.id
                         )
@@ -100,7 +101,7 @@ class DefaultBrowserToolbarMenuController(
             }
             is ToolbarMenu.Item.Forward -> {
                 if (item.viewHistory) {
-                    navController.navigate(
+                    navController.loadNavGraphBeforeNavigate(
                         BrowserFragmentDirections.actionGlobalTabHistoryDialogFragment(
                             activeSessionId = customTabSession?.id
                         )
@@ -193,7 +194,7 @@ class DefaultBrowserToolbarMenuController(
                     ),
                     showPage = true
                 )
-                navController.navigate(directions)
+                navController.loadNavGraphBeforeNavigate(directions)
             }
 
             ToolbarMenu.Item.FindInPage -> {

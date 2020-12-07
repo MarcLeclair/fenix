@@ -53,6 +53,7 @@ import org.mozilla.fenix.components.TabCollectionStorage
 import org.mozilla.fenix.components.metrics.Event
 import org.mozilla.fenix.ext.components
 import org.mozilla.fenix.ext.getDefaultCollectionNumber
+import org.mozilla.fenix.ext.loadNavGraphBeforeNavigate
 import org.mozilla.fenix.ext.metrics
 import org.mozilla.fenix.ext.requireComponents
 import org.mozilla.fenix.ext.settings
@@ -324,7 +325,7 @@ class TabTrayDialogFragment : AppCompatDialogFragment(), UserInteractionHandler 
     private fun dismissTabTrayAndNavigateHome(sessionId: String) {
         homeViewModel.sessionToDelete = sessionId
         val directions = NavGraphDirections.actionGlobalHome()
-        findNavController().navigate(directions)
+        findNavController().loadNavGraphBeforeNavigate(directions)
         dismissAllowingStateLoss()
     }
 
@@ -337,7 +338,7 @@ class TabTrayDialogFragment : AppCompatDialogFragment(), UserInteractionHandler 
         dismissAllowingStateLoss()
         if (findNavController().currentDestination?.id == R.id.browserFragment) return
         if (!findNavController().popBackStack(R.id.browserFragment, false)) {
-            findNavController().navigate(R.id.browserFragment)
+            findNavController().loadNavGraphBeforeNavigate(R.id.browserFragment)
         }
     }
 
@@ -372,7 +373,7 @@ class TabTrayDialogFragment : AppCompatDialogFragment(), UserInteractionHandler 
                 .setText(requireContext().getString(messageStringRes))
                 .setAction(requireContext().getString(R.string.create_collection_view)) {
                     dismissAllowingStateLoss()
-                    findNavController().navigate(
+                    findNavController().loadNavGraphBeforeNavigate(
                         TabTrayDialogFragmentDirections.actionGlobalHome(
                             focusOnAddressBar = false,
                             focusOnCollection = collectionToSelect ?: -1L
@@ -396,7 +397,7 @@ class TabTrayDialogFragment : AppCompatDialogFragment(), UserInteractionHandler 
             .setText(requireContext().getString(R.string.snackbar_message_bookmarks_saved))
             .setAction(requireContext().getString(R.string.snackbar_message_bookmarks_view)) {
                 dismissAllowingStateLoss()
-                findNavController().navigate(
+                findNavController().loadNavGraphBeforeNavigate(
                     TabTrayDialogFragmentDirections.actionGlobalBookmarkFragment(BookmarkRoot.Mobile.id)
                 )
             }

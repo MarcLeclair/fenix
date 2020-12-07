@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.NavController
+import androidx.navigation.NavDirections
 import androidx.navigation.Navigation
 import io.mockk.Runs
 import io.mockk.every
@@ -23,6 +24,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mozilla.fenix.ext.loadNavGraphBeforeNavigate
 import org.mozilla.fenix.helpers.FenixRobolectricTestRunner
 import org.mozilla.fenix.home.HomeFragmentDirections
 import org.mozilla.fenix.onboarding.OnboardingInteractor
@@ -66,9 +68,12 @@ class OnboardingManualSignInViewHolderTest {
 
     @Test
     fun `navigate on click`() {
+        mockkStatic("org.mozilla.fenix.ext.NavControllerKt")
+        every { navController.loadNavGraphBeforeNavigate(any() as NavDirections) } returns Unit
+
         OnboardingManualSignInViewHolder(view)
         view.fxa_sign_in_button.performClick()
 
-        verify { navController.navigate(HomeFragmentDirections.actionGlobalTurnOnSync()) }
+        verify { navController.loadNavGraphBeforeNavigate(HomeFragmentDirections.actionGlobalTurnOnSync()) }
     }
 }

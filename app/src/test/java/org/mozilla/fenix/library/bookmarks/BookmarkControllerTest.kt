@@ -10,6 +10,7 @@ import android.content.Context
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDirections
+import androidx.navigation.NavOptions
 import io.mockk.Runs
 import io.mockk.called
 import io.mockk.coEvery
@@ -17,6 +18,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.slot
 import io.mockk.spyk
@@ -39,6 +41,8 @@ import org.mozilla.fenix.components.Services
 import org.mozilla.fenix.components.metrics.Event
 import org.mozilla.fenix.ext.bookmarkStorage
 import org.mozilla.fenix.ext.components
+import org.mozilla.fenix.ext.loadNavGraphBeforeNavigate
+import org.mozilla.fenix.perf.waitForNavGraphInflation
 
 @Suppress("TooManyFunctions", "LargeClass")
 @ExperimentalCoroutinesApi
@@ -89,6 +93,12 @@ class BookmarkControllerTest {
 
     @Before
     fun setup() {
+
+        mockkStatic("org.mozilla.fenix.perf.PerfNavControllerKt")
+        every { waitForNavGraphInflation(any()) } returns Unit
+        mockkStatic("org.mozilla.fenix.ext.NavControllerKt")
+        every { navController.loadNavGraphBeforeNavigate(any() as NavDirections, any<NavOptions>()) } returns Unit
+
         every { homeActivity.components.services } returns services
         every { navController.currentDestination } returns NavDestination("").apply {
             id = R.id.bookmarkFragment

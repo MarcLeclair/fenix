@@ -6,10 +6,12 @@ package org.mozilla.fenix.addons
 
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
+import androidx.navigation.NavDirections
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.verify
 import mozilla.components.feature.addons.Addon
 import mozilla.components.feature.addons.ui.AddonsManagerAdapterDelegate
@@ -20,6 +22,7 @@ import org.mozilla.fenix.R
 import org.mozilla.fenix.addons.AddonsManagementFragmentDirections.Companion.actionAddonsManagementFragmentToAddonDetailsFragment
 import org.mozilla.fenix.addons.AddonsManagementFragmentDirections.Companion.actionAddonsManagementFragmentToInstalledAddonDetails
 import org.mozilla.fenix.ext.directionsEq
+import org.mozilla.fenix.ext.loadNavGraphBeforeNavigate
 import org.mozilla.fenix.helpers.FenixRobolectricTestRunner
 
 @RunWith(FenixRobolectricTestRunner::class)
@@ -33,6 +36,9 @@ class AddonsManagementViewTest {
     fun setup() {
         MockKAnnotations.init(this)
         managementView = AddonsManagementView(navController, showPermissionDialog)
+
+        mockkStatic("org.mozilla.fenix.ext.NavControllerKt")
+        every { navController.loadNavGraphBeforeNavigate(any() as NavDirections) } returns Unit
     }
 
     @Test
@@ -49,7 +55,7 @@ class AddonsManagementViewTest {
 
         val expected = actionAddonsManagementFragmentToInstalledAddonDetails(addon)
         verify {
-            navController.navigate(directionsEq(expected))
+            navController.loadNavGraphBeforeNavigate(directionsEq(expected))
         }
     }
 
@@ -67,7 +73,7 @@ class AddonsManagementViewTest {
 
         val expected = actionAddonsManagementFragmentToAddonDetailsFragment(addon)
         verify {
-            navController.navigate(directionsEq(expected))
+            navController.loadNavGraphBeforeNavigate(directionsEq(expected))
         }
     }
 
@@ -85,7 +91,7 @@ class AddonsManagementViewTest {
 
         val expected = actionAddonsManagementFragmentToAddonDetailsFragment(addon)
         verify(exactly = 0) {
-            navController.navigate(directionsEq(expected))
+            navController.loadNavGraphBeforeNavigate(directionsEq(expected))
         }
     }
 
@@ -103,7 +109,7 @@ class AddonsManagementViewTest {
 
         val expected = actionAddonsManagementFragmentToAddonDetailsFragment(addon)
         verify(exactly = 0) {
-            navController.navigate(directionsEq(expected))
+            navController.loadNavGraphBeforeNavigate(directionsEq(expected))
         }
     }
 
@@ -123,7 +129,7 @@ class AddonsManagementViewTest {
             addons.toTypedArray()
         )
         verify {
-            navController.navigate(directionsEq(expected))
+            navController.loadNavGraphBeforeNavigate(directionsEq(expected))
         }
     }
 }

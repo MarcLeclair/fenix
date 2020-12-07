@@ -10,17 +10,36 @@ import androidx.navigation.NavDirections
 import androidx.navigation.NavOptions
 import io.sentry.Sentry
 import org.mozilla.fenix.components.isSentryEnabled
+import org.mozilla.fenix.perf.waitForNavGraphInflation
 
 /**
  * Navigate from the fragment with [id] using the given [directions].
  * If the id doesn't match the current destination, an error is recorded.
  */
 fun NavController.nav(@IdRes id: Int?, directions: NavDirections, navOptions: NavOptions? = null) {
+
+    waitForNavGraphInflation(this)
+
     if (id == null || this.currentDestination?.id == id) {
         this.navigate(directions, navOptions)
     } else {
         recordIdException(this.currentDestination?.id, id)
     }
+}
+
+fun NavController.loadNavGraphBeforeNavigate(resId: Int) {
+    waitForNavGraphInflation(this)
+    this.navigate(resId)
+}
+
+fun NavController.loadNavGraphBeforeNavigate(directions: NavDirections) {
+    waitForNavGraphInflation(this)
+    this.navigate(directions)
+}
+
+fun NavController.loadNavGraphBeforeNavigate(directions: NavDirections, navOptions: NavOptions?) {
+    waitForNavGraphInflation(this)
+    this.navigate(directions, navOptions)
 }
 
 fun NavController.alreadyOnDestination(@IdRes destId: Int?): Boolean {
@@ -38,6 +57,6 @@ fun NavController.navigateSafe(
     directions: NavDirections
 ) {
     if (currentDestination?.id == resId) {
-        this.navigate(directions)
+        this.loadNavGraphBeforeNavigate(directions)
     }
 }

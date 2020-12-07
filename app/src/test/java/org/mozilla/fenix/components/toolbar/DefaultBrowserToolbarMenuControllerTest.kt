@@ -6,6 +6,7 @@ package org.mozilla.fenix.components.toolbar
 
 import android.content.Intent
 import androidx.navigation.NavController
+import androidx.navigation.NavDirections
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import io.mockk.MockKAnnotations
 import io.mockk.Runs
@@ -58,7 +59,9 @@ import org.mozilla.fenix.components.metrics.Event
 import org.mozilla.fenix.components.metrics.MetricController
 import org.mozilla.fenix.ext.components
 import org.mozilla.fenix.ext.directionsEq
+import org.mozilla.fenix.ext.loadNavGraphBeforeNavigate
 import org.mozilla.fenix.helpers.FenixRobolectricTestRunner
+import org.mozilla.fenix.perf.waitForNavGraphInflation
 import org.mozilla.fenix.settings.deletebrowsingdata.deleteAndQuit
 import org.mozilla.fenix.utils.Settings
 
@@ -94,6 +97,12 @@ class DefaultBrowserToolbarMenuControllerTest {
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
+
+        mockkStatic("org.mozilla.fenix.ext.NavControllerKt")
+        every { navController.loadNavGraphBeforeNavigate(any() as NavDirections) } returns Unit
+
+        mockkStatic("org.mozilla.fenix.perf.PerfNavControllerKt")
+        every { waitForNavGraphInflation(any()) } returns Unit
 
         mockkStatic(
             "org.mozilla.fenix.settings.deletebrowsingdata.DeleteAndQuitKt"
@@ -145,7 +154,7 @@ class DefaultBrowserToolbarMenuControllerTest {
         val directions = BrowserFragmentDirections.actionGlobalTabHistoryDialogFragment(null)
 
         verify { metrics.track(Event.BrowserMenuItemTapped(Event.BrowserMenuItemTapped.Item.BACK)) }
-        verify { navController.navigate(directions) }
+        verify { navController.loadNavGraphBeforeNavigate(directions) }
     }
 
     @Test
@@ -169,7 +178,7 @@ class DefaultBrowserToolbarMenuControllerTest {
         val directions = BrowserFragmentDirections.actionGlobalTabHistoryDialogFragment(null)
 
         verify { metrics.track(Event.BrowserMenuItemTapped(Event.BrowserMenuItemTapped.Item.FORWARD)) }
-        verify { navController.navigate(directions) }
+        verify { navController.loadNavGraphBeforeNavigate(directions) }
     }
 
     @Test
@@ -392,7 +401,7 @@ class DefaultBrowserToolbarMenuControllerTest {
 
         verify { metrics.track(Event.BrowserMenuItemTapped(Event.BrowserMenuItemTapped.Item.SHARE)) }
         verify {
-            navController.navigate(
+            navController.loadNavGraphBeforeNavigate(
                 directionsEq(
                     NavGraphDirections.actionGlobalShareFragment(
                         data = arrayOf(ShareData(url = "https://mozilla.org", title = "Mozilla")),
@@ -423,7 +432,7 @@ class DefaultBrowserToolbarMenuControllerTest {
 
         verify { metrics.track(Event.BrowserMenuItemTapped(Event.BrowserMenuItemTapped.Item.SHARE)) }
         verify {
-            navController.navigate(
+            navController.loadNavGraphBeforeNavigate(
                 directionsEq(
                     NavGraphDirections.actionGlobalShareFragment(
                         data = arrayOf(ShareData(url = "https://mozilla.org", title = "Mozilla")),

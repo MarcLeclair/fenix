@@ -6,12 +6,14 @@ package org.mozilla.fenix.settings.logins
 
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
+import androidx.navigation.NavDirections
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.TestCoroutineScope
@@ -26,6 +28,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mozilla.fenix.R
 import org.mozilla.fenix.ext.directionsEq
+import org.mozilla.fenix.ext.loadNavGraphBeforeNavigate
 import org.mozilla.fenix.helpers.FenixRobolectricTestRunner
 import org.mozilla.fenix.settings.logins.controller.SavedLoginsStorageController
 import org.mozilla.fenix.settings.logins.fragment.EditLoginFragmentDirections
@@ -121,6 +124,9 @@ class SavedLoginsStorageControllerTest {
         coEvery { passwordsStorage.get(any()) } returns oldLogin
         coEvery { passwordsStorage.update(any()) } just Runs
 
+        mockkStatic("org.mozilla.fenix.ext.NavControllerKt")
+        every { navController.loadNavGraphBeforeNavigate(any() as NavDirections) } returns Unit
+
         controller.save(oldLogin.guid!!, "newUsername", "newPassword")
 
         val directions =
@@ -147,7 +153,7 @@ class SavedLoginsStorageControllerTest {
                     expectedNewList
                 )
             )
-            navController.navigate(directionsEq(directions))
+            navController.loadNavGraphBeforeNavigate(directionsEq(directions))
         }
     }
 

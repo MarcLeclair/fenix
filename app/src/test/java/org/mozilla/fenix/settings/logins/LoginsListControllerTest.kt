@@ -5,7 +5,10 @@
 package org.mozilla.fenix.settings.logins
 
 import androidx.navigation.NavController
+import androidx.navigation.NavDirections
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.verifyAll
 import mozilla.components.support.test.robolectric.testContext
 import org.junit.Test
@@ -14,6 +17,7 @@ import org.mozilla.fenix.BrowserDirection
 import org.mozilla.fenix.components.metrics.Event
 import org.mozilla.fenix.components.metrics.MetricController
 import org.mozilla.fenix.ext.components
+import org.mozilla.fenix.ext.loadNavGraphBeforeNavigate
 import org.mozilla.fenix.helpers.FenixRobolectricTestRunner
 import org.mozilla.fenix.settings.SupportUtils
 import org.mozilla.fenix.settings.logins.controller.LoginsListController
@@ -56,12 +60,15 @@ class LoginsListControllerTest {
     fun `GIVEN a SavedLogin, WHEN handleItemClicked is called for it, THEN LoginsAction$LoginSelected should be emitted`() {
         val login: SavedLogin = mockk(relaxed = true)
 
+        mockkStatic("org.mozilla.fenix.ext.NavControllerKt")
+        every { navController.loadNavGraphBeforeNavigate(any() as NavDirections) } returns Unit
+
         controller.handleItemClicked(login)
 
         verifyAll {
             store.dispatch(LoginsAction.LoginSelected(login))
             metrics.track(Event.OpenOneLogin)
-            navController.navigate(
+            navController.loadNavGraphBeforeNavigate(
                 SavedLoginsFragmentDirections.actionSavedLoginsFragmentToLoginDetailFragment(login.guid)
             )
         }

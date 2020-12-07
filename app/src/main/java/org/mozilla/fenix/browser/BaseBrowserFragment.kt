@@ -127,6 +127,7 @@ import java.lang.ref.WeakReference
 import mozilla.components.feature.session.behavior.EngineViewBrowserToolbarBehavior
 import mozilla.components.feature.webauthn.WebAuthnFeature
 import mozilla.components.support.base.feature.ActivityResultHandler
+import org.mozilla.fenix.ext.loadNavGraphBeforeNavigate
 import mozilla.components.feature.session.behavior.ToolbarPosition as MozacToolbarPosition
 
 /**
@@ -558,7 +559,7 @@ abstract class BaseBrowserFragment : Fragment(), UserInteractionHandler, Activit
                             showPage = true,
                             sessionId = getSessionById()?.id
                         )
-                        findNavController().navigate(directions)
+                        findNavController().loadNavGraphBeforeNavigate(directions)
                     }
                 },
                 onNeedToRequestPermissions = { permissions ->
@@ -569,7 +570,7 @@ abstract class BaseBrowserFragment : Fragment(), UserInteractionHandler, Activit
                     browserAnimator.captureEngineViewAndDrawStatically {
                         val directions =
                             NavGraphDirections.actionGlobalSavedLoginsAuthFragment()
-                        findNavController().navigate(directions)
+                        findNavController().loadNavGraphBeforeNavigate(directions)
                     }
                 }
             ),
@@ -999,7 +1000,7 @@ abstract class BaseBrowserFragment : Fragment(), UserInteractionHandler, Activit
     }
 
     override fun onBackLongPressed(): Boolean {
-        findNavController().navigate(
+        findNavController().loadNavGraphBeforeNavigate(
             NavGraphDirections.actionGlobalTabHistoryDialogFragment(
                 activeSessionId = customTabSessionId
             )

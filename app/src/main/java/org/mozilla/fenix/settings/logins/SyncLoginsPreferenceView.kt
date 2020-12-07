@@ -16,6 +16,7 @@ import mozilla.components.service.fxa.SyncEngine
 import mozilla.components.service.fxa.manager.FxaAccountManager
 import mozilla.components.service.fxa.manager.SyncEnginesStorage
 import org.mozilla.fenix.R
+import org.mozilla.fenix.ext.loadNavGraphBeforeNavigate
 import org.mozilla.fenix.settings.logins.fragment.SavedLoginsAuthFragmentDirections
 
 /**
@@ -97,16 +98,16 @@ class SyncLoginsPreferenceView(
     private fun navigateToAccountSettingsFragment() {
         val directions =
             SavedLoginsAuthFragmentDirections.actionGlobalAccountSettingsFragment()
-        navController.navigate(directions)
+        navController.loadNavGraphBeforeNavigate(directions)
     }
 
     private fun navigateToAccountProblemFragment() {
         val directions = SavedLoginsAuthFragmentDirections.actionGlobalAccountProblemFragment()
-        navController.navigate(directions)
+        navController.loadNavGraphBeforeNavigate(directions)
     }
 
     private fun navigateToTurnOnSyncFragment() {
         val directions = SavedLoginsAuthFragmentDirections.actionSavedLoginsAuthFragmentToTurnOnSyncFragment()
-        navController.navigate(directions)
+        navController.loadNavGraphBeforeNavigate(directions)
     }
 }
