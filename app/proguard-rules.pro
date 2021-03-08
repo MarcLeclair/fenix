@@ -121,3 +121,9 @@
 # Keep Android Lifecycle methods
 # https://bugzilla.mozilla.org/show_bug.cgi?id=1596302
 -keep class androidx.lifecycle.** { *; }
+
+-assumenosideeffects class kotlin.jvm.internal.Intrinsics {
+    static void checkParameterIsNotNull(java.lang.Object, java.lang.String);
+    static void checkNotNullParameter(java.lang.Object, java.lang.String);
+    static void checkNotNullExpressionValue(java.lang.Object, java.lang.String);
+}
