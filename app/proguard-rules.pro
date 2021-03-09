@@ -126,4 +126,16 @@
     static void checkParameterIsNotNull(java.lang.Object, java.lang.String);
     static void checkNotNullParameter(java.lang.Object, java.lang.String);
     static void checkNotNullExpressionValue(java.lang.Object, java.lang.String);
+#    static void checkNotNull(java.lang.Object);
+#    static void checkNotNull(java.lang.Object, java.lang.String);
+#    static void checkFieldIsNotNull(java.lang.Object, java.lang.String);
+#    static void checkFieldIsNotNull(java.lang.Object, java.lang.String,java.lang.String);
+#    static void checkReturnedValueIsNotNull(java.lang.Object,java.lang.String,java.lang.String);
+#    static boolean areEqual(java.lang.Object, java.lang.Object);
+#    static boolean areEqual(java.lang.Double, java.lang.Double);
+#    static boolean areEqual(java.lang.Double, double);
+#    static boolean areEqual(double, java.lang.Double);
+#    static boolean areEqual(java.lang.Float, float);
+#    static boolean areEqual(java.lang.Float, java.lang.Float);
+#    static boolean areEqual(float, java.lang.Float);
 }
